@@ -4,7 +4,7 @@ from google import genai
 
 # --- 1. NEW SDK CONFIGURATION ---
 # Using the NEW Client structure
-client = genai.Client(api_key="AIzaSyCizdZZMl5T83o74btHMExOlhDD3c64A1k")
+client = genai.Client(api_key="AIzaSyAWb4Ww1wpeIpHQ7Qz8YSJRmw2QimYqbjQ")
 
 # --- 2. PAGE SETUP ---
 st.set_page_config(page_title="99.95% Study SaaS", page_icon="🎯")
