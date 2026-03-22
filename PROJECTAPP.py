@@ -53,7 +53,7 @@ if st.button("Get Best Notes"):
                 
                 # 3. Request the content
                 response = client.models.generate_content(
-                    model="gemini-1.5-flash-8b", 
+                    model="gemini-1.5-flash", 
                     contents=topper_prompt
                 )
                 
