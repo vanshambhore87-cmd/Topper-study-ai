@@ -46,7 +46,7 @@ if st.button("Get Best Notes"):
         # Instead of "Asking Gemini", we say "Finding best notes"
         with st.status("🔍 Finding best notes and exam patterns...", expanded=True) as status:
             prompt = f"Explain {topic} for 10th grade {subject}. Give 3 mark-fetching points and 1 topper tip."
-            response = client.models.generate_content(model="gemini-1.5-flash", contents=prompt)
+            response = client.models.generate_content(model="gemini-2.0-flash", contents=prompt)
             status.update(label="✅ Notes Found!", state="complete")
         
         # Display Results
