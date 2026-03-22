@@ -8,7 +8,7 @@ st.set_page_config(page_title="Topper Study AI", page_icon="🎓", layout="wide"
 
 # Safe API Key
 api_key = st.secrets["GEMINI_API_KEY"]
-client = genai.Client(api_key=api_key,http_options=HttpOptions(api_version="v1"))
+client = genai.Client(api_key=api_key)
 
 # Initialize points and history in session memory
 if 'points' not in st.session_state:
@@ -54,7 +54,7 @@ if st.button("Get Best Notes"):
                 
                 # 3. Request the content
                 response = client.models.generate_content(
-                    model="gemini-1.5-flash", 
+                    model="models/gemini-1.5-flash", 
                     contents=topper_prompt
                 )
                 
