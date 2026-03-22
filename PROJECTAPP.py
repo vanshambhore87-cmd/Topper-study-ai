@@ -68,7 +68,7 @@ if st.button("Get Best Notes"):
             except Exception as e:
                 # This catches the 429 error specifically
                 if "429" in str(e):
-                    status.update(label="🚦 Traffic Jam!", state="error")
+                    status.update(label="🚦 please wait!", state="error")
                     st.error("The AI is a bit busy (Free Tier limit). Please wait 20 seconds and try again!")
                 else:
                     status.update(label="❌ Error", state="error")
