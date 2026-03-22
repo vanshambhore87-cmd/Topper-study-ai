@@ -35,7 +35,6 @@ with st.sidebar:
 # --- 3. MAIN INTERFACE ---
 st.title("🚀 Smart Study Engine")
 
-# Subject Selection with Colors
 subject = st.selectbox("Choose your Subject:", 
     ["🟦 Physics", "🧪 Chemistry", "🧬 Biology", "📐 Maths", "📜 History/Civics"])
 
@@ -43,18 +42,37 @@ topic = st.text_input(f"What {subject} topic are you stuck on?", placeholder="e.
 
 if st.button("Get Best Notes"):
     if topic:
-        # Instead of "Asking Gemini", we say "Finding best notes"
+        # Professional status bar
         with st.status("🔍 Finding best notes and exam patterns...", expanded=True) as status:
-            prompt = f"Explain {topic} for 10th grade {subject}. Give 3 mark-fetching points and 1 topper tip."
-            response = client.models.generate_content(model="gemini-2.0-flash", contents=prompt)
-            status.update(label="✅ Notes Found!", state="complete")
-        
-        # Display Results
-        st.markdown(f"### 📔 Topper Notes: {topic}")
-        st.write(response.text)
-        
-        # Save to History
-        st.session_state.history.append({"topic": topic, "notes": response.text})
+            try:
+                # 1. Add a tiny pause to prevent "spamming" the API
+                time.sleep(1) 
+                
+                # 2. The Topper Prompt
+                topper_prompt = f"Explain {topic} for 10th grade {subject}. Give 3 mark-fetching points and 1 topper tip."
+                
+                # 3. Request the content
+                response = client.models.generate_content(
+                    model="gemini-2.0-flash", 
+                    contents=topper_prompt
+                )
+                
+                # 4. Success!
+                status.update(label="✅ Notes Found!", state="complete")
+                st.markdown(f"### 📔 Topper Notes: {topic}")
+                st.write(response.text)
+                
+                # Save to History
+                st.session_state.history.append({"topic": topic, "notes": response.text})
+                
+            except Exception as e:
+                # This catches the 429 error specifically
+                if "429" in str(e):
+                    status.update(label="🚦 Traffic Jam!", state="error")
+                    st.error("The AI is a bit busy (Free Tier limit). Please wait 20 seconds and try again!")
+                else:
+                    status.update(label="❌ Error", state="error")
+                    st.error(f"Something went wrong: {e}")
 
 # --- 4. REVISION TEST (Daily Challenge) ---
 st.divider()
