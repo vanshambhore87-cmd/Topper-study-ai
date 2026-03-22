@@ -36,7 +36,7 @@ with st.sidebar:
 st.title("🚀 Smart Study Engine")
 
 subject = st.selectbox("Choose your Subject:", 
-    ["🟦 Physics", "🧪 Chemistry", "🧬 Biology", "📐 Maths", "📜 History/Civics"])
+    ["🟦 Physics", "🧪 Chemistry", "🧬 Biology", "📐 Maths", "📜 History/Civics","🔠English","🌍Geography"])
 
 topic = st.text_input(f"What {subject} topic are you stuck on?", placeholder="e.g. Ohm's Law")
 
@@ -53,7 +53,7 @@ if st.button("Get Best Notes"):
                 
                 # 3. Request the content
                 response = client.models.generate_content(
-                    model="gemini-2.0-flash", 
+                    model="gemini-1.5-flash-8b", 
                     contents=topper_prompt
                 )
                 
