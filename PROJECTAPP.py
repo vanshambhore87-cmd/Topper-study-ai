@@ -45,7 +45,7 @@ if st.button("Get Best Notes"):
             try:
                 # Force the model string to be exactly what Google's 'Stable' tier wants
                 response = client.models.generate_content(
-                    model="gemini-1.5-flash", 
+                    model="gemini-2.0-flash", 
                     contents=f"Explain {topic} for 10th grade {subject}. Give 3 mark-fetching points and 1 topper tip."
                 )
                 
