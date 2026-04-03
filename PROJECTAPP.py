@@ -1,17 +1,13 @@
 import streamlit as st
 from google import genai
-from google.genai.types import HttpOptions
 import time
 
 # --- 1. SETUP ---
 st.set_page_config(page_title="Topper Study AI", page_icon="🎓", layout="wide")
 
-# High-Stability Client Configuration
+# Simplified connection - this lets Google's library choose the best route
 api_key = st.secrets["GEMINI_API_KEY"]
-client = genai.Client(
-    api_key=api_key,
-    http_options=HttpOptions(api_version="v1") # Forces the stable production highway
-)
+client = genai.Client(api_key=api_key)
 
 # Initialize memory
 if 'points' not in st.session_state:
@@ -46,12 +42,12 @@ topic = st.text_input(f"What {subject} topic are you stuck on?", placeholder="e.
 if st.button("Finding best notes"):
     if topic:
         with st.status("🔍 Searching topper database...", expanded=True) as status:
-            # RETRY LOGIC: It will try up to 3 times if there is a Traffic Jam
-            for attempt in range(3):
+            # We try twice if there's a speed limit issue
+            for attempt in range(2):
                 try:
-                    # Using '8b' for the HIGHEST free-tier request limits
+                    # FIX: Using the most stable model name available globally
                     response = client.models.generate_content(
-                        model="gemini-1.5-flash-8b", 
+                        model="gemini-1.5-flash", 
                         contents=f"Explain {topic} for 10th grade {subject}. Give 3 topper-style points and 1 secret tip."
                     )
                     
@@ -59,21 +55,21 @@ if st.button("Finding best notes"):
                     st.markdown(f"### 📔 Notes: {topic}")
                     st.write(response.text)
                     st.session_state.history.append({"topic": topic, "notes": response.text})
-                    break # Success! Exit the retry loop.
+                    break 
                 
                 except Exception as e:
-                    if "429" in str(e) and attempt < 2:
-                        status.write(f"🫨🚦😕 Traffic heavy... retrying in {attempt + 2}s...")
-                        time.sleep(attempt + 2)
+                    if "429" in str(e) and attempt == 0:
+                        status.write("🚦 Traffic heavy... retrying in 5s...")
+                        time.sleep(5)
                     else:
                         status.update(label="❌ Connection Issue", state="error")
-                        st.error(f"Google is very busy right now. Please wait 30 seconds and try again. Error: {e}")
+                        st.error(f"Google is busy. Please wait 15 seconds and try again. (Details: {e})")
                         break
 
 # --- 4. HISTORY ---
 if st.session_state.history:
     st.divider()
-    with st.expander("📚 Your Saved Notes (Session History)"):
+    with st.expander("📚 Your Saved Notes"):
         for item in st.session_state.history:
             st.write(f"📌 **{item['topic']}**")
 
