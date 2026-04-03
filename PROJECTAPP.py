@@ -1,16 +1,19 @@
 import streamlit as st
 from google import genai
-import time
 from google.genai.types import HttpOptions
+import time
 
-# --- 1. SETUP ---
+# --- 1. SETUP & STABLE API CONFIG ---
 st.set_page_config(page_title="Topper Study AI", page_icon="🎓", layout="wide")
 
-# Safe API Key
+# We force 'v1' to avoid the 404 Beta error you saw on your phone
 api_key = st.secrets["GEMINI_API_KEY"]
-client = genai.Client(api_key=api_key)
+client = genai.Client(
+    api_key=api_key, 
+    http_options=HttpOptions(api_version="v1")
+)
 
-# Initialize points and history in session memory
+# Initialize points and history
 if 'points' not in st.session_state:
     st.session_state.points = 0
 if 'history' not in st.session_state:
@@ -36,29 +39,25 @@ with st.sidebar:
 # --- 3. MAIN INTERFACE ---
 st.title("🚀 Smart Study Engine")
 
+# Subject Selection
 subject = st.selectbox("Choose your Subject:", 
-    ["🟦 Physics", "🧪 Chemistry", "🧬 Biology", "📐 Maths", "📜 History/Civics","🔠English","🌍Geography"])
+    ["🟦 Physics", "🧪 Chemistry", "🧬 Biology", "📐 Maths", "🔤 English", "📜 History"])
 
 topic = st.text_input(f"What {subject} topic are you stuck on?", placeholder="e.g. Ohm's Law")
 
 if st.button("Get Best Notes"):
     if topic:
-        # Professional status bar
         with st.status("🔍 Finding best notes and exam patterns...", expanded=True) as status:
             try:
-                # 1. Add a tiny pause to prevent "spamming" the API
-                time.sleep(1) 
-                
-                # 2. The Topper Prompt
+                # The Topper Prompt
                 topper_prompt = f"Explain {topic} for 10th grade {subject}. Give 3 mark-fetching points and 1 topper tip."
                 
-                # 3. Request the content
+                # Using the stable model path
                 response = client.models.generate_content(
                     model="models/gemini-1.5-flash", 
                     contents=topper_prompt
                 )
                 
-                # 4. Success!
                 status.update(label="✅ Notes Found!", state="complete")
                 st.markdown(f"### 📔 Topper Notes: {topic}")
                 st.write(response.text)
@@ -67,28 +66,28 @@ if st.button("Get Best Notes"):
                 st.session_state.history.append({"topic": topic, "notes": response.text})
                 
             except Exception as e:
-                # This catches the 429 error specifically
                 if "429" in str(e):
-                    status.update(label="🚦 please wait!", state="error")
-                    st.error("The AI is a bit busy (Free Tier limit). Please wait 20 seconds and try again!")
+                    status.update(label="🚦 Traffic Jam!", state="error")
+                    st.error("AI is busy. Please wait 20 seconds and try again.")
                 else:
                     status.update(label="❌ Error", state="error")
                     st.error(f"Something went wrong: {e}")
 
-# --- 4. REVISION TEST (Daily Challenge) ---
-st.divider()
-st.subheader("📝 Daily Revision Challenge")
-st.write("Question: Why is the sky blue? (Physics Challenge)")
-answer = st.text_input("Your answer...")
-if st.button("Submit Challenge"):
-    if "scattering" in answer.lower():
-        st.success("Correct! You understand Rayleigh Scattering! +20 Points")
-        st.session_state.points += 20
-    else:
-        st.error("Close! Hint: Think about light scattering.")
-
-# --- 5. HISTORY SECTION ---
+# --- 4. HISTORY SECTION ---
 if st.session_state.history:
-    with st.expander("📚 Your Saved Notes (History)"):
+    st.divider()
+    with st.expander("📚 Your Saved Notes (Session History)"):
         for item in st.session_state.history:
             st.write(f"**{item['topic']}**")
+
+# --- 5. DAILY CHALLENGE (Static Example) ---
+st.divider()
+st.subheader("📝 Daily Revision Challenge")
+st.write("Question: What is the power house of the cell? (Biology)")
+answer = st.text_input("Your answer...")
+if st.button("Submit Challenge"):
+    if "mitochondria" in answer.lower():
+        st.success("Correct! +20 Points 👑")
+        st.session_state.points += 20
+    else:
+        st.error("Try again! Hint: Starts with 'M'")
