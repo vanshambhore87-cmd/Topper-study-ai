@@ -5,7 +5,7 @@ import time
 # --- 1. SETUP ---
 st.set_page_config(page_title="Topper Study AI", page_icon="🎓", layout="wide")
 
-# Simplified connection
+# Safe API Key from Streamlit Secrets
 api_key = st.secrets["GEMINI_API_KEY"]
 client = genai.Client(api_key=api_key)
 
@@ -43,12 +43,9 @@ if st.button("Get Best Notes"):
     if topic:
         with st.status("🔍 Finding best notes...", expanded=True) as status:
             try:
-                # 1. We add a tiny delay to stay under the radar
-                time.sleep(1.5) 
-                
-                # 2. We use the '8b' model which has higher free limits
+                # IMPORTANT: Using the most stable model name to avoid 404
                 response = client.models.generate_content(
-                    model="gemini-1.5-flash-8b", 
+                    model="gemini-1.5-flash", 
                     contents=f"Explain {topic} for 10th grade {subject}. Use bullet points and 1 topper tip."
                 )
                 
@@ -62,10 +59,10 @@ if st.button("Get Best Notes"):
             except Exception as e:
                 if "429" in str(e):
                     status.update(label="🚦 Traffic Jam!", state="error")
-                    st.error("The AI is taking a breather. Wait 20 seconds and click again!")
+                    st.error("AI is busy. Please wait 20 seconds and click again!")
                 else:
                     status.update(label="❌ Error", state="error")
-                    st.error(f"Something went wrong: {e}")
+                    st.error(f"Error Details: {e}")
 
 # --- 4. HISTORY ---
 if st.session_state.history:
