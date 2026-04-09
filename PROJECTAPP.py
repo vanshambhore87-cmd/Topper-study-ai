@@ -1,15 +1,20 @@
 import streamlit as st
 from google import genai
+from google.genai.types import HttpOptions  # Added this missing import
 import time
 
 # --- 1. SETUP ---
 st.set_page_config(page_title="Topper Study AI", page_icon="🎓", layout="wide")
 
 api_key = st.secrets["GEMINI_API_KEY"]
-client = genai.Client(api_key=api_key, http_options=HttpOptions(api_version="v1")
+
+# Corrected Client Setup with HttpOptions
+client = genai.Client(
+    api_key=api_key, 
+    http_options=HttpOptions(api_version="v1")
 )
 
-
+# Initialize Session States
 if 'points' not in st.session_state:
     st.session_state.points = 0
 if 'history' not in st.session_state:
@@ -36,7 +41,7 @@ with st.sidebar:
 st.title("🚀 Smart Study Engine")
 
 subject = st.selectbox("Choose Subject:", 
-    ["🟦 Physics", "🧪 Chemistry", "🧬 Biology", "📐 Maths", "🔤 English", "📜 History","Something New🔥"])
+    ["🟦 Physics", "🧪 Chemistry", "🧬 Biology", "📐 Maths", "🔤 English", "📜 History", "🔥 Something New"])
 
 topic = st.text_input(f"What {subject} topic?", placeholder="e.g. Trigonometry")
 
@@ -44,6 +49,7 @@ if st.button("Finding best notes"):
     if topic:
         with st.status("🔍 Searching topper database...", expanded=True) as status:
             try:
+                # Using the stablest 2026 model
                 response = client.models.generate_content(
                     model="gemini-2.5-flash-lite", 
                     contents=f"Explain {topic} for 10th grade {subject}. Give 3 topper-style points and 1 secret tip."
@@ -55,20 +61,24 @@ if st.button("Finding best notes"):
             except Exception as e:
                 st.error(f"Traffic Jam! Wait 15 seconds. (Error: {e})")
 
-# --- 4. NEW: DYNAMIC DAILY CHALLENGE ---
+# --- 4. DYNAMIC DAILY CHALLENGE ---
 st.divider()
 st.subheader("📝 Daily Revision Challenge")
 
 if st.button("Generate New Challenge"):
     with st.spinner("Creating a challenge for you..."):
         try:
+            # Updated to use the lite model to avoid 'limit 0' errors
             q_res = client.models.generate_content(
-                model="gemini-2.0-flash",
+                model="gemini-2.5-flash-lite",
                 contents=f"Give one hard 10th grade {subject} question and its one-word answer. Format: Question | Answer"
             )
-            st.session_state.daily_q = q_res.text.split("|")
-        except:
-            st.error("Too many requests! Wait a bit.")
+            if "|" in q_res.text:
+                st.session_state.daily_q = q_res.text.split("|")
+            else:
+                st.warning("The AI gave a weird format. Try generating again!")
+        except Exception as e:
+            st.error("Google is busy! Please wait a few seconds.")
 
 if st.session_state.daily_q:
     st.info(f"Today's {subject} Challenge: {st.session_state.daily_q[0]}")
