@@ -93,15 +93,20 @@ if st.session_state.daily_q:
     st.info(f"✨ Today's {subject} Challenge: {st.session_state.daily_q[0]}")
     user_ans = st.text_input("Your Answer (One word):", key="challenge_input")
     
-    if st.button("Check Answer"):
-        correct_ans = st.session_state.daily_q[1].strip().lower()
-        if user_ans.lower() == correct_ans:
-            st.success(f"🎯 CORRECT! The answer is {correct_ans.upper()}! +50 Points")
+        if st.button("Check Answer"):
+        # We use .strip() to remove accidental spaces 
+        # and 'in' to see if the word exists in the AI's answer
+        user_clean = user_ans.lower().strip()
+        correct_clean = st.session_state.daily_q[1].lower().strip()
+        
+        if user_clean in correct_clean or correct_clean in user_clean:
+            st.success(f"🎯 CORRECT! The answer is {correct_clean.upper()}! +50 Points")
             st.session_state.points += 50
             st.balloons()
-            st.session_state.daily_q = None # Reset for next time
+            st.session_state.daily_q = None 
         else:
-            st.error(f"❌ Not quite! The answer was '{correct_ans}'. Try another one!")
+            st.error(f"❌ Not quite! The answer was '{correct_clean}'. Try another one!")
+
 
 # --- 5. HISTORY ---
 if st.session_state.history:
