@@ -66,32 +66,42 @@ st.divider()
 st.subheader("📝 Daily Revision Challenge")
 
 if st.button("Generate New Challenge"):
-    with st.spinner("Creating a challenge for you..."):
+    with st.spinner("Creating a challenge..."):
         try:
-            # Updated to use the lite model to avoid 'limit 0' errors
+            # We made the prompt much stricter here
             q_res = client.models.generate_content(
                 model="gemini-2.5-flash-lite",
-                contents=f"Give one hard 10th grade {subject} question and its one-word answer. Format: Question | Answer"
+                contents=f"Act as a teacher. Give me a 10th grade {subject} question where the answer is one single word. Format exactly like this: QUESTION: [write question here] | ANSWER: [write one word answer here]"
             )
-            if "|" in q_res.text:
-                st.session_state.daily_q = q_res.text.split("|")
+            
+            # Better splitting logic to avoid the "Where's the question" glitch
+            raw_text = q_res.text
+            if "|" in raw_text:
+                parts = raw_text.split("|")
+                # Clean up the "QUESTION:" and "ANSWER:" labels from the text
+                st.session_state.daily_q = [
+                    parts[0].replace("QUESTION:", "").strip(), 
+                    parts[1].replace("ANSWER:", "").strip()
+                ]
             else:
-                st.warning("The AI gave a weird format. Try generating again!")
+                st.warning("AI formatting error. Please click 'Generate' again!")
         except Exception as e:
-            st.error("Google is busy! Please wait a few seconds.")
+            st.error("Google is busy! Wait a few seconds.")
 
 if st.session_state.daily_q:
-    st.info(f"Today's {subject} Challenge: {st.session_state.daily_q[0]}")
-    user_ans = st.text_input("Your Answer (One word):")
+    # Displaying the actual question text
+    st.info(f"✨ Today's {subject} Challenge: {st.session_state.daily_q[0]}")
+    user_ans = st.text_input("Your Answer (One word):", key="challenge_input")
+    
     if st.button("Check Answer"):
         correct_ans = st.session_state.daily_q[1].strip().lower()
-        if user_ans.lower() in correct_ans:
-            st.success("🎯 Correct! You're a Genius! +50 Points")
+        if user_ans.lower() == correct_ans:
+            st.success(f"🎯 CORRECT! The answer is {correct_ans.upper()}! +50 Points")
             st.session_state.points += 50
             st.balloons()
-            st.session_state.daily_q = None # Reset after win
+            st.session_state.daily_q = None # Reset for next time
         else:
-            st.error(f"Wrong! The answer was {correct_ans}. Try a new one!")
+            st.error(f"❌ Not quite! The answer was '{correct_ans}'. Try another one!")
 
 # --- 5. HISTORY ---
 if st.session_state.history:
