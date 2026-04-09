@@ -93,7 +93,7 @@ if st.session_state.daily_q:
     st.info(f"✨ Today's {subject} Challenge: {st.session_state.daily_q[0]}")
     user_ans = st.text_input("Your Answer (One word):", key="challenge_input")
     
-        if st.button("Check Answer"):
+if st.button("Check Answer"):
         # We use .strip() to remove accidental spaces 
         # and 'in' to see if the word exists in the AI's answer
         user_clean = user_ans.lower().strip()
