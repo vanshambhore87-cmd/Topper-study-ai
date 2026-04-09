@@ -34,7 +34,7 @@ with st.sidebar:
 st.title("🚀 Smart Study Engine")
 
 subject = st.selectbox("Choose Subject:", 
-    ["🟦 Physics", "🧪 Chemistry", "🧬 Biology", "📐 Maths", "🔤 English", "📜 History"])
+    ["🟦 Physics", "🧪 Chemistry", "🧬 Biology", "📐 Maths", "🔤 English", "📜 History","Something New🔥"])
 
 topic = st.text_input(f"What {subject} topic?", placeholder="e.g. Trigonometry")
 
@@ -84,6 +84,6 @@ if st.session_state.daily_q:
 # --- 5. HISTORY ---
 if st.session_state.history:
     st.divider()
-    with st.expander("📚 Your Saved Notes"):
+    with st.expander("📚 Your Notes History"):
         for item in st.session_state.history:
             st.write(f"📌 **{item['topic']}**")
