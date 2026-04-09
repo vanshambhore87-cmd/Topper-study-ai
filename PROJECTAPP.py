@@ -6,7 +6,9 @@ import time
 st.set_page_config(page_title="Topper Study AI", page_icon="🎓", layout="wide")
 
 api_key = st.secrets["GEMINI_API_KEY"]
-client = genai.Client(api_key=api_key)
+client = genai.Client(api_key=api_key, http_options=HttpOptions(api_version="v1")
+)
+)
 
 if 'points' not in st.session_state:
     st.session_state.points = 0
