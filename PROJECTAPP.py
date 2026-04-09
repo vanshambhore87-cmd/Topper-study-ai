@@ -45,7 +45,7 @@ if st.button("Finding best notes"):
         with st.status("🔍 Searching topper database...", expanded=True) as status:
             try:
                 response = client.models.generate_content(
-                    model="gemini-2.0-flash", 
+                    model="gemini-2.5-flash-lite", 
                     contents=f"Explain {topic} for 10th grade {subject}. Give 3 topper-style points and 1 secret tip."
                 )
                 status.update(label="✅ Notes Found!", state="complete")
