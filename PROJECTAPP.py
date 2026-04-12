@@ -115,6 +115,32 @@ if st.session_state.daily_q:
             st.rerun()
         else: st.error(f"Incorrect! It was {correct}")
 
+# --- NEW: Q&A CORNER (DOUBT SOLVER) ---
+st.divider()
+st.subheader("❓ Q&A Corner (Doubt Solver)")
+st.caption("Stuck on a specific question? Paste it below!")
+
+user_question = st.text_area("Paste your question here:", placeholder="e.g., Why is the sky blue?")
+
+if st.button("Solve My Doubt"):
+    if user_question:
+        with st.spinner("Analyzing your question..."):
+            try:
+                # Direct instruction for a step-by-step answer
+                q_response = client.models.generate_content(
+                    model="gemini-2.5-flash-lite", 
+                    contents=f"Act as a helpful tutor. Provide a clear, step-by-step answer to this question: {user_question}"
+                )
+                st.info("🎯 **Tutor's Answer:**")
+                st.write(q_response.text)
+                
+                # Add to history so you don't lose it
+                st.session_state.history.append({"topic": "Doubt Solver", "notes": q_response.text})
+            except Exception as e:
+                st.error("Traffic Jam! Try again in 10 seconds.")
+    else:
+        st.warning("Please enter a question first!")
+
 # --- 6. HISTORY ---
 if st.session_state.history:
     st.divider()
