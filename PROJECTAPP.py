@@ -141,6 +141,48 @@ if st.button("Solve My Doubt"):
     else:
         st.warning("Please enter a question first!")
 
+# --- PHOTO DOUBT SOLVER ---
+st.write("---")
+st.subheader("📸 Snap & Solve")
+st.caption("Take a photo of a question from your book!")
+
+# Two ways to get the image: Camera or Upload
+source = st.radio("Choose source:", ["Camera", "Upload Image"], horizontal=True)
+
+if source == "Camera":
+    img_file = st.camera_input("Take a picture")
+else:
+    img_file = st.file_uploader("Upload a question photo", type=["jpg", "jpeg", "png"])
+
+if img_file:
+    # Display a small preview
+    st.image(img_file, caption="Processing your doubt...", width=300)
+    
+    if st.button("Analyze Image"):
+        with st.spinner("AI is reading the question..."):
+            try:
+                # Convert image to bytes for Gemini
+                img_bytes = img_file.getvalue()
+                
+                # Ask Gemini to solve based on the image
+                response = client.models.generate_content(
+                    model="gemini-2.5-flash-lite",
+                    contents=[
+                        "You are a 10th-grade topper tutor. Look at this image and solve the question step-by-step. If it's a diagram, explain it clearly.",
+                        {"mime_type": "image/jpeg", "data": img_bytes}
+                    ]
+                )
+                
+                st.success("🎯 **Found the solution!**")
+                st.markdown(response.text)
+                
+                # Save to history
+                st.session_state.history.append({"topic": "Image Doubt", "notes": response.text})
+                st.session_state.points += 10 # Extra points for using vision!
+                
+            except Exception as e:
+                st.error("AI couldn't read the image. Make sure it's clear and has good lighting!")
+
 # --- 6. HISTORY ---
 if st.session_state.history:
     st.divider()
