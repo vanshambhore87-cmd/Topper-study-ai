@@ -7,11 +7,14 @@ import os
 # --- 1. PREMIUM SETUP & PERSISTENT MEMORY ---
 st.set_page_config(page_title="Topper Study AI Pro", page_icon="💎", layout="wide")
 
-# Styling to make it look like a high-end software business
+# CSS FIX: Professional styling and dark text for metrics
 st.markdown("""
     <style>
-    .stButton>button { width: 100%; border-radius: 20px; height: 3em; background-color: #ff4b4b; color: white; font-weight: bold; }
-    .stMetric { background-color: #ffffff; padding: 15px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+    .stButton>button { width: 100%; border-radius: 12px; height: 3em; background-color: #ff4b4b; color: white; font-weight: bold; border: none; }
+    /* This fix makes metric text dark and visible regardless of theme */
+    [data-testid="stMetricValue"] { color: #1f1f1f !important; font-weight: bold ! shadow: 2px 2px 5px rgba(0,0,0,0.1); }
+    [data-testid="stMetricLabel"] { color: #555555 !important; font-size: 1rem !important; }
+    .main { background-color: #f8f9fa; }
     </style>
     """, unsafe_allow_html=True)
 
@@ -43,27 +46,31 @@ def get_rank(p):
 
 current_rank, next_goal = get_rank(st.session_state.points)
 
-# --- 3. SIDEBAR (Professional Dashboard) ---
+# --- 3. SIDEBAR (Clean & Honest) ---
 with st.sidebar:
-    st.image("https://img.icons8.com/fluent/100/000000/education.png")
-    st.title("Topper AI Pro")
+    st.title("🎓 Topper AI Pro")
     st.subheader(f"Rank: {current_rank}")
     
-    col1, col2 = st.columns(2)
-    col1.metric("Points", st.session_state.points)
-    col2.metric("Goal", next_goal)
+    # Using columns inside sidebar for better spacing
+    m1, m2 = st.columns(2)
+    m1.metric("Points", st.session_state.points)
+    m2.metric("Goal", next_goal)
     
     st.progress(min(st.session_state.points / next_goal, 1.0))
     st.divider()
     
-    st.subheader("🥇 Hall of Fame")
-    st.write(f"1. You — {st.session_state.points} pts")
-    st.write("2. AI Scholar — 450 pts")
-    st.divider()
+    # REMOVED FAKE LEADERBOARD - Showing only your real progress now
+    st.subheader("📊 Your Progress")
+    points_needed = next_goal - st.session_state.points
+    if points_needed > 0:
+        st.write(f"Keep going! **{points_needed}** points until you reach **{get_rank(next_goal)[0]}**.")
+    else:
+        st.write("You've reached the top rank! 👑")
     
+    st.divider()
     st.subheader("⏱️ Focus Timer")
     minutes = st.number_input("Minutes", 1, 120, 25)
-    if st.button("🚀 Start Sprint"):
+    if st.button("🚀 Start Study Sprint"):
         with st.empty():
             for seconds in range(minutes * 60, 0, -1):
                 st.info(f"⏳ Focus Mode: {seconds // 60}:{seconds % 60:02d}")
@@ -73,18 +80,18 @@ with st.sidebar:
             save_points(st.session_state.points)
             st.rerun()
 
-# --- 4. MAIN ENGINE (Columns for clean UI) ---
+# --- 4. MAIN INTERFACE ---
 st.title("🚀 Smart Study Engine")
-left_col, right_col = st.columns([1, 1])
+left, right = st.columns([1, 1])
 
-with left_col:
+with left:
     st.subheader("🎯 Research Center")
     subject = st.selectbox("Subject", ["Physics", "Chemistry", "Biology", "Maths", "English", "History", "Coding"])
-    topic = st.text_input("What are we mastering?", placeholder="e.g. Trigonometry")
+    topic = st.text_input("Topic to Master", placeholder="e.g. Cell Division")
     
-    if st.button("✨ Generate Premium Notes"):
+    if st.button("✨ Get Topper Notes"):
         if topic:
-            with st.status("🔍 Searching topper database...") as s:
+            with st.status("🔍 Analyzing Database...") as s:
                 try:
                     res = client.models.generate_content(
                         model="gemini-2.5-flash-lite", 
@@ -93,69 +100,65 @@ with left_col:
                     st.session_state.history.insert(0, {"topic": topic, "notes": res.text})
                     st.session_state.points += 5
                     save_points(st.session_state.points)
-                    s.update(label="✅ Analysis Complete!", state="complete")
-                except: st.error("Traffic Jam! Wait 15s.")
+                    s.update(label="✅ Notes Ready!", state="complete")
+                except: st.error("AI Busy. Try again in 10s.")
 
-with right_col:
-    st.subheader("📔 Interactive Notebook")
+with right:
+    st.subheader("📔 Output")
     if st.session_state.history:
         latest = st.session_state.history[0]
-        st.info(f"Topic: {latest['topic']}")
+        st.info(f"Current Topic: {latest['topic']}")
         st.markdown(latest['notes'])
     else:
-        st.write("Generate notes to see them here!")
+        st.write("Your notes will appear here!")
 
-# --- 5. SNAP & SOLVE (The 'Rich App' Feature) ---
+# --- 5. VISION & CHALLENGE ---
 st.divider()
-st.subheader("📸 Snap & Solve (Vision AI)")
-c1, c2 = st.columns([1, 1])
+col_v, col_c = st.columns(2)
 
-with c1:
-    source = st.radio("Source:", ["Camera", "Upload Image"], horizontal=True)
-    img_file = st.camera_input("Scan Question") if source == "Camera" else st.file_uploader("Upload Photo", type=["jpg", "png"])
-
-with c2:
+with col_v:
+    st.subheader("📸 Snap & Solve")
+    img_file = st.file_uploader("Upload Question Image", type=["jpg", "png"])
     if img_file:
-        st.image(img_file, width=300)
-        if st.button("🧠 Analyze Image"):
+        st.image(img_file, width=250)
+        if st.button("🧠 Solve Question"):
             with st.spinner("AI is reading..."):
                 try:
                     img_bytes = img_file.getvalue()
                     response = client.models.generate_content(
                         model="gemini-2.5-flash-lite",
-                        contents=["Solve this 10th grade question step-by-step.", {"mime_type": "image/jpeg", "data": img_bytes}]
+                        contents=["Solve this question step-by-step.", {"mime_type": "image/jpeg", "data": img_bytes}]
                     )
-                    st.success("🎯 Solution Found!")
                     st.markdown(response.text)
                     st.session_state.points += 10
                     save_points(st.session_state.points)
-                except: st.error("Could not read image. Try better lighting!")
+                except: st.error("Image too blurry. Use better light!")
 
-# --- 6. DAILY CHALLENGE ---
-st.divider()
-st.subheader("📝 Daily Revision Challenge")
-if st.button("🎲 Generate New Question"):
-    try:
-        q_res = client.models.generate_content(model="gemini-2.5-flash-lite", contents="10th grade question. Format: Q: [text] | A: [word]")
-        if "|" in q_res.text:
-            st.session_state.daily_q = [q_res.text.split("|")[0].replace("Q:","").strip(), q_res.text.split("|")[1].replace("A:","").strip()]
-    except: st.error("Busy!")
+with col_c:
+    st.subheader("📝 Daily Challenge")
+    if st.button("🎲 Get New Question"):
+        try:
+            q_res = client.models.generate_content(model="gemini-2.5-flash-lite", contents="10th grade question. Format: Q: [text] | A: [word]")
+            if "|" in q_res.text:
+                st.session_state.daily_q = [q_res.text.split("|")[0].replace("Q:","").strip(), q_res.text.split("|")[1].replace("A:","").strip()]
+        except: st.error("Busy!")
 
-if st.session_state.daily_q:
-    st.info(f"Challenge: {st.session_state.daily_q[0]}")
-    user_ans = st.text_input("Your Answer (One word):")
-    if st.button("🔥 Check Answer"):
-        correct = st.session_state.daily_q[1].lower().strip()
-        if user_ans.lower().strip() in correct or correct in user_ans.lower().strip():
-            st.success("🎯 Correct! +50 Points")
-            st.balloons() 
-            st.session_state.points += 50
-            save_points(st.session_state.points)
-            st.session_state.daily_q = None
-            time.sleep(2)
-            st.rerun()
+    if st.session_state.daily_q:
+        st.info(f"Q: {st.session_state.daily_q[0]}")
+        user_ans = st.text_input("One-word Answer:")
+        if st.button("🔥 Submit"):
+            correct = st.session_state.daily_q[1].lower().strip()
+            if user_ans.lower().strip() in correct or correct in user_ans.lower().strip():
+                st.success("🎯 Correct! +50 pts")
+                st.balloons()
+                st.session_state.points += 50
+                save_points(st.session_state.points)
+                st.session_state.daily_q = None
+                time.sleep(1)
+                st.rerun()
+            else: st.error("Try again!")
 
-# --- 7. HISTORY ---
+# --- 6. HISTORY ---
 if st.session_state.history:
     st.divider()
     with st.expander("📚 Your Session History"):
