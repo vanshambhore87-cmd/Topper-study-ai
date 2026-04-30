@@ -158,6 +158,7 @@ with col_c:
                 st.rerun()
             else: st.error("Try again!")
 
+
 # --- 6. HISTORY ---
 if st.session_state.history:
     st.divider()
